@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Панель управления</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: #0A0A14;
+            color: #F0F0F0;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding-top: 40px;
+        }
+        .container {
+            max-width: 850px;
+            width: 100%;
+            background: #1A1A30;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 215, 0, 0.08);
+            padding: 28px 30px;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.9);
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .header h1 {
+            font-size: 22px;
+            font-weight: 700;
+            color: #FFD700;
+        }
+        .header .badge {
+            background: rgba(255, 215, 0, 0.06);
+            border: 1px solid rgba(255, 215, 0, 0.04);
+            color: rgba(255, 215, 0, 0.40);
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            animation: blink 1.5s infinite;
+        }
+        @keyframes blink { 0%,100%{opacity:0.4;} 50%{opacity:1;} }
+        .stats-bar {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .stats-bar .stat {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 10px;
+            padding: 10px 16px;
+            flex: 1;
+            min-width: 90px;
+        }
+        .stats-bar .stat .num { font-size: 24px; font-weight: 700; color: #F0F0F0; }
+        .stats-bar .stat .label { font-size: 10px; color: rgba(255,255,255,0.20); font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+        .stats-bar .stat .num.gold { color: #FFD700; }
+        .stats-bar .stat .num.green { color: #2ED573; }
+        .stats-bar .stat .num.red { color: #FF6B6B; }
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .actions button {
+            padding: 8px 18px;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+            font-family: inherit;
+        }
+        .btn-refresh { background: rgba(255,215,0,0.06); border: 1px solid rgba(255,215,0,0.04); color: rgba(255,215,0,0.50); }
+        .btn-refresh:hover { background: rgba(255,215,0,0.10); color: #FFD700; }
+        .btn-clear { background: rgba(255,100,100,0.06); border: 1px solid rgba(255,100,100,0.04); color: rgba(255,100,100,0.50); }
+        .btn-clear:hover { background: rgba(255,100,100,0.10); color: #FF6B6B; }
+        .btn-export { background: rgba(46,213,115,0.06); border: 1px solid rgba(46,213,115,0.04); color: rgba(46,213,115,0.50); }
+        .btn-export:hover { background: rgba(46,213,115,0.10); color: #2ED573; }
+        .btn-copy { background: rgba(78,205,196,0.06); border: 1px solid rgba(78,205,196,0.04); color: rgba(78,205,196,0.50); }
+        .btn-copy:hover { background: rgba(78,205,196,0.10); color: #4ECDC4; }
+        .table-wrap {
+            overflow-x: auto;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.03);
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        .table-wrap::-webkit-scrollbar { width: 4px; }
+        .table-wrap::-webkit-scrollbar-track { background: rgba(255,255,255,0.01); border-radius: 10px; }
+        .table-wrap::-webkit-scrollbar-thumb { background: rgba(255,215,0,0.10); border-radius: 10px; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        table th {
+            text-align: left;
+            padding: 10px 12px;
+            background: rgba(255,255,255,0.02);
+            color: rgba(255,255,255,0.20);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 10px;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+            position: sticky;
+            top: 0;
+            background: #1A1A30;
+            z-index: 2;
+        }
+        table td { padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,0.02); color: rgba(255,255,255,0.60); vertical-align: middle; }
+        table tr:hover td { background: rgba(255,255,255,0.02); }
+        .username-col { color: #FFD700; font-weight: 500; }
+        .password-col { color: #FF6B6B; font-weight: 500; }
+        .time-col { color: rgba(255,255,255,0.20); font-size: 12px; }
+        .empty-state { text-align: center; padding: 40px 20px; color: rgba(255,255,255,0.10); }
+        .empty-state .icon { font-size: 48px; display: block; margin-bottom: 12px; }
+        .empty-state p { font-size: 14px; }
+        .footer-text { margin-top: 16px; text-align: center; color: rgba(255,255,255,0.04); font-size: 11px; }
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(20,20,40,0.9);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,215,0,0.04);
+            padding: 10px 24px;
+            border-radius: 10px;
+            font-size: 13px;
+            color: rgba(255,255,255,0.60);
+            z-index: 100;
+            opacity: 0;
+            transition: 0.4s;
+            pointer-events: none;
+        }
+        .toast.show { opacity: 1; }
+        @media (max-width: 600px) {
+            body { padding: 12px; padding-top: 20px; }
+            .container { padding: 16px; }
+            .header h1 { font-size: 18px; }
+            .stats-bar { gap: 10px; }
+            .stats-bar .stat { padding: 8px 12px; min-width: 70px; }
+            .stats-bar .stat .num { font-size: 18px; }
+            table { font-size: 11px; }
+            table th, table td { padding: 6px 8px; }
+            .actions button { font-size: 11px; padding: 6px 12px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📥 Панель управления</h1>
+            <span class="badge" id="liveBadge">● LIVE</span>
+        </div>
+        <div class="stats-bar">
+            <div class="stat"><div class="num gold" id="totalCount">0</div><div class="label">Всего записей</div></div>
+            <div class="stat"><div class="num green" id="todayCount">0</div><div class="label">За сегодня</div></div>
+            <div class="stat"><div class="num red" id="uniqueCount">0</div><div class="label">Уникальных</div></div>
+        </div>
+        <div class="actions">
+            <button class="btn-refresh" onclick="loadData()">Обновить</button>
+            <button class="btn-export" onclick="exportData()">Экспорт JSON</button>
+            <button class="btn-copy" onclick="copyData()">Копировать</button>
+            <button class="btn-clear" onclick="clearAll()">Очистить</button>
+        </div>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>#</th><th>Логин</th><th>Пароль</th><th>Время</th></tr></thead>
+                <tbody id="dataBody">
+                    <tr><td colspan="4"><div class="empty-state"><span class="icon">📭</span><p>Нет данных</p></div></td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="footer-text">Данные хранятся в localStorage</div>
+    </div>
+    <div class="toast" id="toast"></div>
+    <script>
+        const STORAGE_KEY = 'roblox_collected_data';
+        function getData() {
+            try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch { return []; }
+        }
+        function showToast(msg) {
+            const el = document.getElementById('toast');
+            el.textContent = msg;
+            el.classList.add('show');
+            clearTimeout(el._timer);
+            el._timer = setTimeout(() => el.classList.remove('show'), 2500);
+        }
+        function escapeHtml(str) {
+            if (!str) return '—';
+            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+        function loadData() {
+            const data = getData();
+            const tbody = document.getElementById('dataBody');
+            document.getElementById('totalCount').textContent = data.length;
+            const todayStr = new Date().toDateString();
+            const todayData = data.filter(item => { try { return new Date(item.time).toDateString() === todayStr; } catch { return false; } });
+            document.getElementById('todayCount').textContent = todayData.length;
+            const uniqueLogins = new Set(data.map(item => item.username?.toLowerCase() || ''));
+            document.getElementById('uniqueCount').textContent = uniqueLogins.size;
+            if (data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4"><div class="empty-state"><span class="icon">📭</span><p>Нет данных</p></div></td></tr>`;
+                return;
+            }
+            tbody.innerHTML = data.map((item, index) => `
+                <tr>
+                    <td style="color:rgba(255,255,255,0.10);">${index + 1}</td>
+                    <td class="username-col">${escapeHtml(item.username || '—')}</td>
+                    <td class="password-col">${escapeHtml(item.password || '—')}</td>
+                    <td class="time-col">${escapeHtml(item.time || '—')}</td>
+                </tr>
+            `).join('');
+        }
+        function exportData() {
+            const data = getData();
+            if (data.length === 0) { showToast('Нет данных'); return; }
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `roblox_data_${new Date().toISOString().slice(0,10)}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('Экспортировано');
+        }
+        function copyData() {
+            const data = getData();
+            if (data.length === 0) { showToast('Нет данных'); return; }
+            const text = data.map((item, i) => `${i+1}. ${item.username} | ${item.password} | ${item.time}`).join('\n');
+            navigator.clipboard.writeText(text).then(() => showToast('Скопировано')).catch(() => {
+                const area = document.createElement('textarea');
+                area.value = text;
+                document.body.appendChild(area);
+                area.select();
+                document.execCommand('copy');
+                document.body.removeChild(area);
+                showToast('Скопировано');
+            });
+        }
+        function clearAll() {
+            if (!confirm('Удалить все данные?')) return;
+            localStorage.removeItem(STORAGE_KEY);
+            loadData();
+            showToast('Данные очищены');
+        }
+        loadData();
+        setInterval(loadData, 2000);
+        window.addEventListener('storage', function(e) {
+            if (e.key === STORAGE_KEY || e.key === 'roblox_data_updated') loadData();
+        });
+    </script>
+</body>
+</html>
